@@ -1,0 +1,24 @@
+{
+    "name": "omnibase/booking",
+    "type": "symfony-bundle",
+    "description": "Reserved, not released yet: a ready-made travel-agency structure for omnibase sites - trips, stays and bookings, built on omnisense/omnistay (lodging, car hire, packages) and omnisense/omnitravel (timetables, itineraries), so an agency site integrates these components quickly.",
+    "homepage": "https://github.com/glitchr-omnisense/omnibase-booking",
+    "license": "LGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Marco Meyer"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "suggest": {
+        "omnisense/omnistay": "the lodging, car-hire and package providers it books through",
+        "omnisense/omnitravel": "the timetables and itineraries it shows for a trip"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        }
+    }
+}
