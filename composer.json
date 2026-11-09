@@ -1,21 +1,41 @@
 {
     "name": "omnibase/booking",
     "type": "symfony-bundle",
-    "description": "Reserved, not released yet: a ready-made travel-agency structure for omnibase sites - trips, stays and bookings, built on omnisense/omnistay (lodging, car hire, packages) and omnisense/omnitravel (timetables, itineraries), so an agency site integrates these components quickly.",
+    "description": "Stays booking for omnibase sites, built on omnisense/omnistay: hosts' listings with their calendars (blocked nights, minimum stays, prices per night and season), bookings held without double booking (symfony/lock) and paid through omnisense/omnitrade, reviews in both directions, guest-host messages, host payouts, and the back office - the site's own listings searched beside the hotels of other omnistay providers (omnistay/amadeus).",
     "homepage": "https://github.com/glitchr-omnisense/omnibase-booking",
-    "license": "LGPL-3.0-or-later",
+    "license": "MIT",
     "authors": [
         {
             "name": "Marco Meyer"
         }
     ],
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "doctrine/orm": "^2.15|^3.0",
+        "omnibase/admin": "dev-main",
+        "omnibridge/symfony": "1.x-dev",
+        "omnisense/omnibase": "5.0.*-dev",
+        "omnisense/omnistay": "1.x-dev",
+        "omnistay/local": "1.x-dev",
+        "symfony/config": "^6.4|^7.0|^8.0",
+        "symfony/dependency-injection": "^6.4|^7.0|^8.0",
+        "symfony/form": "^6.4|^7.0|^8.0",
+        "symfony/http-kernel": "^6.4|^7.0|^8.0",
+        "symfony/lock": "^6.4|^7.0|^8.0",
+        "symfony/security-bundle": "^6.4|^7.0|^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5|^11.0|^12.0"
     },
     "suggest": {
-        "omnisense/omnistay": "the lodging, car-hire and package providers it books through",
-        "omnisense/omnitravel": "the timetables and itineraries it shows for a trip"
+        "omnisense/omnitrade": "the payment of a booking (omnitrade/stripe: Stripe Checkout)",
+        "omnistay/amadeus": "hotels searched beside the site's listings",
+        "omnisense/omnitravel": "the journey to the stay (a later step)"
     },
+    "autoload": {"psr-4": {"Base\\Booking\\": "./src"}},
+    "autoload-dev": {"psr-4": {"Base\\Booking\\Tests\\": "./tests"}},
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "extra": {
         "branch-alias": {
             "dev-main": "1.x-dev"
