@@ -12,11 +12,12 @@
     "require": {
         "php": ">=8.2",
         "doctrine/orm": "^2.15|^3.0",
-        "omnibase/admin": "dev-main",
-        "omnibridge/symfony": "1.x-dev",
-        "omnisense/omnibase": "5.0.*-dev",
-        "omnisense/omnistay": "1.x-dev",
-        "omnistay/local": "1.x-dev",
+        "doctrine/doctrine-bundle": "^2.13|^3.0",
+        "omnibase/admin": "^1.0",
+        "omnibridge/symfony": "^1.1",
+        "omnisense/omnibase": "^5.1",
+        "omnisense/omnistay": "^1.0",
+        "omnistay/local": "^1.0",
         "symfony/config": "^6.4|^7.0|^8.0",
         "symfony/dependency-injection": "^6.4|^7.0|^8.0",
         "symfony/form": "^6.4|^7.0|^8.0",
@@ -34,8 +35,6 @@
     },
     "autoload": {"psr-4": {"Base\\Booking\\": "./src"}},
     "autoload-dev": {"psr-4": {"Base\\Booking\\Tests\\": "./tests"}},
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "extra": {
         "branch-alias": {
             "dev-main": "1.x-dev"

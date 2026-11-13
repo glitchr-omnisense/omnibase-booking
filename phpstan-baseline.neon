@@ -1,0 +1,67 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to constant CANCELLED on an unknown class Omnitrade\\Model\\Status\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Access to constant EXPIRED on an unknown class Omnitrade\\Model\\Status\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Access to constant PARTIALLY_REFUNDED on an unknown class Omnitrade\\Model\\Status\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Access to constant REFUNDED on an unknown class Omnitrade\\Model\\Status\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Access to constant REFUSED on an unknown class Omnitrade\\Model\\Status\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Call to static method of\(\) on an unknown class Omnitrade\\Model\\Money\.$#'
+			identifier: class.notFound
+			count: 2
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Instantiated class Omnitrade\\Model\\Line not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Instantiated class Omnitrade\\Model\\Payment not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Method Base\\Booking\\Payment\\BookingPayments\:\:gateways\(\) has invalid return type Omnitrade\\Registry\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Parameter \$gateways of method Base\\Booking\\Payment\\BookingPayments\:\:__construct\(\) has invalid type Omnitrade\\Registry\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php
+
+		-
+			message: '#^Property Base\\Booking\\Payment\\BookingPayments\:\:\$gateways has unknown class Omnitrade\\Registry as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Payment/BookingPayments.php

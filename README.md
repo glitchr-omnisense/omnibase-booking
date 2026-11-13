@@ -28,3 +28,25 @@ each other.
 The site's pages (search, a place, trips, the host space) are the application's: the bundle gives
 the services, the entities, the payment's return and webhook routes and the back office. solstay
 is the reference site. Manual: [docs/index.md](docs/index.md). License: MIT.
+
+## Install
+
+```bash
+composer require omnibase/booking
+```
+
+Under Symfony it runs on the core's Symfony host: Composer brings `omnisense/omnibase` 5.1 and
+`omnibridge/symfony` with it; `config/bundles.php` registers the core's bundle before this one
+(see the core's README for the other bundles a site usually adds):
+
+```php
+// config/bundles.php
+Omnibridge\Symfony\Omnibase\BaseBundle::class => ['all' => true],
+Base\Admin\AdminBundle::class => ['all' => true],
+Base\Booking\BookingBundle::class => ['all' => true],
+```
+
+A first use, once the schema is updated: a host's `Listing` written in the back office is a stay
+omnistay/local finds, and `Checkout\BookingFlow::quote()` prices a stay at it - the routes,
+the payment (omnitrade/stripe) and the configuration are in [docs/index.md](docs/index.md).
+
