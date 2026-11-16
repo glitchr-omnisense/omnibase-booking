@@ -5,7 +5,7 @@ namespace Base\Booking\Entity;
 use Base\Booking\Enum\ReviewDirection;
 use Base\Booking\Repository\ReviewRepository;
 use Base\Entity\User;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
 
 /**
  * What one side of a stay says of the other, once it is over: the guest of

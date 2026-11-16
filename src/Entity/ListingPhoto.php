@@ -3,7 +3,7 @@
 namespace Base\Booking\Entity;
 
 use Base\Database\Attribute\Uploader;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
 
 /**
  * A photograph of a listing, in its gallery's order: an upload, or an

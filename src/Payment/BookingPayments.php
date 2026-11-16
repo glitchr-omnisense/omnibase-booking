@@ -4,7 +4,7 @@ namespace Base\Booking\Payment;
 
 use Base\Booking\Entity\Booking;
 use Base\Booking\Enum\PaymentState;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
 use Omnitrade\Model\Line;
 use Omnitrade\Model\Money;
 use Omnitrade\Model\Payment;
@@ -24,7 +24,7 @@ final class BookingPayments
     public const TEST = 'test';
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
         private readonly ?Gateways $gateways = null,
         private readonly ?string $gateway = null,
         private readonly bool $test = false,
@@ -50,7 +50,7 @@ final class BookingPayments
         $gateway = $this->gateway() ?? throw new \LogicException('No payment gateway: set booking.payment.gateway (an omnitrade gateway) or booking.payment.test.');
         if (self::TEST === $gateway) {
             $booking->setPayment(self::TEST, 'test_'.$booking->getReference(), PaymentState::Pending);
-            $this->entityManager->flush();
+            $this->unitOfWork->flush();
 
             return $returnUrl;
         }
@@ -68,7 +68,7 @@ final class BookingPayments
             locale: $locale,
         ));
         $booking->setPayment($gateway, $transaction->reference, $transaction->isPaid() ? PaymentState::Paid : PaymentState::Pending);
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $transaction->redirectUrl ?? $returnUrl;
     }

@@ -8,7 +8,7 @@ use Base\Booking\Repository\BookingRepository;
 use Base\Booking\Repository\CalendarNightRepository;
 use Base\Booking\Repository\ListingRepository;
 use Base\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
 use Omnistay\Exception\UnavailableException;
 use Omnistay\Local\ListingStoreInterface;
 use Omnistay\Local\Quote;
@@ -24,7 +24,7 @@ use Omnistay\Model\Traveller;
 use Symfony\Component\Lock\LockFactory;
 
 /**
- * omnistay/local's store on Doctrine: the listings, their calendars, and
+ * omnistay/local's store over the site's own tables: the listings, their calendars, and
  * the Bookings that hold their nights. hold() is where a night is never
  * sold twice: under a lock per listing (symfony/lock - shared by every PHP
  * process when the lock store is), it reads the nights taken and writes the
@@ -33,7 +33,7 @@ use Symfony\Component\Lock\LockFactory;
  * A hold is for a member: forGuest() names them before the provider's
  * book() (BookingFlow does).
  */
-final class DoctrineListingStore implements ListingStoreInterface
+final class ListingStore implements ListingStoreInterface
 {
     private ?User $guest = null;
 
@@ -41,7 +41,7 @@ final class DoctrineListingStore implements ListingStoreInterface
         private readonly ListingRepository $listings,
         private readonly CalendarNightRepository $nights,
         private readonly BookingRepository $bookings,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
         private readonly LockFactory $locks,
         private readonly ListingMapper $mapper,
     ) {
@@ -99,7 +99,7 @@ final class DoctrineListingStore implements ListingStoreInterface
         $lock = $this->locks->createLock('omnibase-booking-listing-'.$reservation->listing, 30);
         $lock->acquire(true);
         try {
-            $booking = $this->entityManager->wrapInTransaction(function () use ($reservation, $now, $listing, $guest): Booking {
+            $booking = $this->unitOfWork->transactional(function () use ($reservation, $now, $listing, $guest): Booking {
                 $taken = $this->occupied($reservation->listing, $reservation->stay->checkIn, $reservation->stay->checkOut, $now);
                 if ([] !== $taken) {
                     throw UnavailableException::because((string) reset($taken), $listing->getTitle(), (string) $reservation->stay);
@@ -122,8 +122,8 @@ final class DoctrineListingStore implements ListingStoreInterface
                 if (BookingStatus::Confirmed === $reservation->status) {
                     $booking->setConfirmedAt($now);
                 }
-                $this->entityManager->persist($booking);
-                $this->entityManager->flush();
+                $this->unitOfWork->persist($booking);
+                $this->unitOfWork->flush();
 
                 return $booking;
             });
@@ -174,7 +174,7 @@ final class DoctrineListingStore implements ListingStoreInterface
                 $booking->setConfirmedAt($now);
             }
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $this->reservation($reference);
     }

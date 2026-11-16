@@ -5,18 +5,21 @@ namespace Base\Booking\Repository;
 use Base\Booking\Entity\Booking;
 use Base\Booking\Entity\HostProfile;
 use Base\Booking\Entity\Listing;
+use Base\Database\Repository\Finder\Criterion;
+use Base\Database\Repository\Finder\Group;
+use Base\Database\Repository\Finder\Key;
+use Base\Database\Repository\Finder\Parser;
+use Base\Database\Repository\Finders;
+use Base\Database\Repository\ServiceEntityRepository;
 use Base\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\Persistence\ManagerRegistry;
 use Omnistay\Model\BookingStatus;
 
 /** @extends ServiceEntityRepository<Booking> */
 class BookingRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(Finders $finders)
     {
-        parent::__construct($registry, Booking::class);
+        parent::__construct($finders, Booking::class);
     }
 
     public function findOneByReference(string $reference): ?Booking
@@ -33,13 +36,16 @@ class BookingRepository extends ServiceEntityRepository
      */
     public function holding(Listing $listing, \DateTimeImmutable $from, \DateTimeImmutable $to, \DateTimeImmutable $now): array
     {
+        // The days are bound with the mapping's type (date_immutable), as the hand-written query bound them.
         /** @var list<Booking> $bookings */
-        $bookings = $this->createQueryBuilder('b')
-            ->andWhere('b.listing = :listing')->setParameter('listing', $listing)
-            ->andWhere('b.checkIn < :to')->setParameter('to', $to, Types::DATE_IMMUTABLE)
-            ->andWhere('b.checkOut > :from')->setParameter('from', $from, Types::DATE_IMMUTABLE)
-            ->andWhere('b.status IN (:statuses)')->setParameter('statuses', [BookingStatus::Pending->value, BookingStatus::Confirmed->value, BookingStatus::OnRequest->value, BookingStatus::Completed->value])
-            ->getQuery()->getResult();
+        $bookings = $this->findBy([
+            'listing' => Key::of($listing),
+            Group::of(Parser::SEPARATOR_AND,
+                Criterion::of('checkIn', $to, Parser::OPTION_LOWER),
+                Criterion::of('checkOut', $from, Parser::OPTION_GREATER),
+            ),
+            'status' => [BookingStatus::Pending->value, BookingStatus::Confirmed->value, BookingStatus::OnRequest->value, BookingStatus::Completed->value],
+        ]);
 
         return array_values(array_filter($bookings, static fn (Booking $b) => $b->holds($now)));
     }
@@ -47,25 +53,37 @@ class BookingRepository extends ServiceEntityRepository
     /** @return list<Booking> a guest's bookings, the next stay first */
     public function findForGuest(User $guest): array
     {
-        return $this->findBy(['guest' => $guest], ['checkIn' => 'DESC']);
+        return $this->findBy(['guest' => Key::of($guest)], ['checkIn' => 'DESC']);
     }
 
     /** @return list<Booking> the bookings of a host's listings, the next stay first */
     public function findForHost(HostProfile $host): array
     {
         /** @var list<Booking> */
-        return $this->createQueryBuilder('b')->join('b.listing', 'l')
-            ->andWhere('l.host = :host')->setParameter('host', $host)
-            ->orderBy('b.checkIn', 'DESC')->getQuery()->getResult();
+        return $this->findBy(['listing.host' => $host], ['checkIn' => 'DESC']);
     }
 
     /** @return list<Booking> pending bookings whose hold has ended */
     public function findExpired(\DateTimeImmutable $now): array
     {
         /** @var list<Booking> */
-        return $this->createQueryBuilder('b')
-            ->andWhere('b.status = :pending')->setParameter('pending', BookingStatus::Pending->value)
-            ->andWhere('b.holdExpiresAt <= :now')->setParameter('now', $now)
-            ->getQuery()->getResult();
+        return $this->findBy([
+            'status' => BookingStatus::Pending->value,
+            Group::of(Parser::SEPARATOR_AND, Criterion::of('holdExpiresAt', $now, Parser::OPTION_LOWER_EQUAL)),
+        ]);
+    }
+
+    /**
+     * The confirmed stays whose check-out is on or before $today marked
+     * completed, in one UPDATE (no entity loaded): the daily round's.
+     *
+     * @return int the bookings completed
+     */
+    public function completeStays(\DateTimeImmutable $today): int
+    {
+        return $this->updateBy([
+            'status' => BookingStatus::Confirmed->value,
+            Group::of(Parser::SEPARATOR_AND, Criterion::of('checkOut', $today, Parser::OPTION_LOWER_EQUAL)),
+        ], ['status' => BookingStatus::Completed->value]);
     }
 }

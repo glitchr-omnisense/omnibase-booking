@@ -5,7 +5,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use Base\Booking\Payment\BookingPayments;
 use Base\Booking\Payout\Payouts;
 use Base\Booking\Review\Reviews;
-use Base\Booking\Stay\DoctrineListingStore;
+use Base\Booking\Stay\ListingStore;
 use Base\Booking\Stay\ListingMapper;
 use Base\Booking\Stay\StayRegistryFactory;
 use Omnistay\Registry;
@@ -27,15 +27,15 @@ return function (ContainerConfigurator $configurator) {
     }
 
     $services->set(ListingMapper::class)->args(['%booking.local_provider%']);
-    $services->set(DoctrineListingStore::class)->public();
+    $services->set(ListingStore::class)->public();
     $services->set(StayRegistryFactory::class)->args([
-        service(DoctrineListingStore::class), '%booking.providers%', '%booking.service_fee%', '%booking.hold_minutes%',
+        service(ListingStore::class), '%booking.providers%', '%booking.service_fee%', '%booking.hold_minutes%',
         service('http_client')->nullOnInvalid(), tagged_iterator('omnistay.provider_factory'),
     ]);
     $services->set(Registry::class)->factory([service(StayRegistryFactory::class), 'create'])->public();
 
     $services->set(BookingPayments::class)->args([
-        service('doctrine.orm.entity_manager'),
+        service(\Base\Contract\UnitOfWork::class),
         class_exists('Omnitrade\\Registry') ? service('Omnitrade\\Registry')->nullOnInvalid() : null,
         '%booking.payment.gateway%',
         '%booking.payment.test%',

@@ -10,7 +10,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * The site's omnistay registry, from booking.providers: omnistay/local on
- * the Doctrine store (its service fee and hold from booking.service_fee and
+ * the site's listing store (its service fee and hold from booking.service_fee and
  * booking.hold_minutes unless its options say otherwise), omnistay/amadeus
  * when installed, on the application's HTTP client. A provider whose
  * "enabled" is false - Amadeus without credentials - is left out.
@@ -22,7 +22,7 @@ final class StayRegistryFactory
      * @param iterable<ProviderFactoryInterface>                                                           $factories more factories (tagged omnistay.provider_factory)
      */
     public function __construct(
-        private readonly DoctrineListingStore $store,
+        private readonly ListingStore $store,
         private readonly array $providers,
         private readonly float $serviceFee = 0.0,
         private readonly int $holdMinutes = 30,

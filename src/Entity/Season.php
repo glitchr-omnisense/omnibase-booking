@@ -2,8 +2,8 @@
 
 namespace Base\Booking\Entity;
 
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
+use Base\Mapping\Types;
 
 /**
  * A stretch of the year a listing prices apart, both days included: the

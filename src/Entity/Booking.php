@@ -5,14 +5,14 @@ namespace Base\Booking\Entity;
 use Base\Booking\Enum\PaymentState;
 use Base\Booking\Repository\BookingRepository;
 use Base\Entity\User;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
+use Base\Mapping\Types;
 use Omnistay\Model\BookingStatus;
 use Omnistay\Model\Stay;
 
 /**
  * A stay booked by a member: at one of the site's listings - then this row
- * is what holds its nights (DoctrineListingStore) - or at a property of
+ * is what holds its nights (ListingStore) - or at a property of
  * another provider (a hotel), then $providerReference is that provider's.
  * It keeps what was quoted line by line, the cancellation policy as it was
  * offered, the payment's gateway and reference, and while it waits for its

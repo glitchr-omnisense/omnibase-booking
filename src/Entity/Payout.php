@@ -4,8 +4,8 @@ namespace Base\Booking\Entity;
 
 use Base\Booking\Enum\PayoutStatus;
 use Base\Booking\Repository\PayoutRepository;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
+use Base\Mapping\Types;
 
 /**
  * What the site owes a host for a booking: the host's share less the host

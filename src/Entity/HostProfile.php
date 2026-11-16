@@ -6,7 +6,7 @@ use Base\Booking\Repository\HostProfileRepository;
 use Base\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
 
 /**
  * A member who rents out places: the name guests see, a few words, the

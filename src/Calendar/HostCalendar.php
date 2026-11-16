@@ -6,7 +6,7 @@ use Base\Booking\Entity\CalendarNight;
 use Base\Booking\Entity\Listing;
 use Base\Booking\Repository\CalendarNightRepository;
 use Base\Booking\Stay\ListingMapper;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
 use Omnistay\Model\CalendarDay;
 use Omnistay\Model\Stay;
 use Omnistay\Registry;
@@ -24,7 +24,7 @@ final class HostCalendar
         private readonly Registry $stays,
         private readonly ListingMapper $mapper,
         private readonly CalendarNightRepository $nights,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
     ) {
     }
 
@@ -65,7 +65,7 @@ final class HostCalendar
             $night->setBlocked($blocked)->setNote($blocked ? $note : null);
             $this->tidy($night);
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return ['changed' => $changed, 'booked' => $booked];
     }
@@ -78,7 +78,7 @@ final class HostCalendar
             $this->tidy($this->night($listing, $date)->setPrice(null === $price ? null : max(0, $price)));
             ++$count;
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $count;
     }
@@ -93,9 +93,9 @@ final class HostCalendar
     private function tidy(CalendarNight $night): void
     {
         if ($night->isEmpty() && null !== $night->getId()) {
-            $this->entityManager->remove($night);
+            $this->unitOfWork->remove($night);
         } elseif (!$night->isEmpty() && null === $night->getId()) {
-            $this->entityManager->persist($night);
+            $this->unitOfWork->persist($night);
         }
     }
 }

@@ -4,16 +4,20 @@ namespace Base\Booking\Repository;
 
 use Base\Booking\Entity\HostProfile;
 use Base\Booking\Entity\Listing;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Base\Database\Repository\Finder\Criterion;
+use Base\Database\Repository\Finder\Group;
+use Base\Database\Repository\Finder\Key;
+use Base\Database\Repository\Finder\Parser;
+use Base\Database\Repository\Finders;
+use Base\Database\Repository\ServiceEntityRepository;
 use Omnistay\Model\StayQuery;
 
 /** @extends ServiceEntityRepository<Listing> */
 class ListingRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(Finders $finders)
     {
-        parent::__construct($registry, Listing::class);
+        parent::__construct($finders, Listing::class);
     }
 
     /**
@@ -25,43 +29,56 @@ class ListingRepository extends ServiceEntityRepository
      */
     public function findForQuery(StayQuery $query, int $max = 200): array
     {
-        $qb = $this->createQueryBuilder('l')->andWhere('l.published = true');
         $places = [];
         if (null !== $query->place && '' !== trim($query->place)) {
-            $places[] = 'LOWER(l.title) LIKE :place OR LOWER(l.city) LIKE :place OR LOWER(l.area) LIKE :place';
-            $qb->setParameter('place', '%'.mb_strtolower(trim($query->place)).'%');
+            // LOWER(column) LIKE the lowered word, as the hand-written query compared it.
+            $place = '%'.mb_strtolower(trim($query->place)).'%';
+            $places[] = Group::of(Parser::SEPARATOR_OR,
+                Criterion::of('title', $place, Parser::OPTION_INSENSITIVE, Parser::OPTION_PARTIAL),
+                Criterion::of('city', $place, Parser::OPTION_INSENSITIVE, Parser::OPTION_PARTIAL),
+                Criterion::of('area', $place, Parser::OPTION_INSENSITIVE, Parser::OPTION_PARTIAL),
+            );
         }
         if ($query->hasPoint()) {
             $lat = (float) $query->latitude;
             $lng = (float) $query->longitude;
             $dLat = $query->radius / 111.0;
             $dLng = $query->radius / max(1.0, 111.0 * cos(deg2rad($lat)));
-            $places[] = 'l.latitude BETWEEN :latMin AND :latMax AND l.longitude BETWEEN :lngMin AND :lngMax';
-            $qb->setParameter('latMin', $lat - $dLat)->setParameter('latMax', $lat + $dLat)->setParameter('lngMin', $lng - $dLng)->setParameter('lngMax', $lng + $dLng);
+            // BETWEEN, bounds included.
+            $places[] = Group::of(Parser::SEPARATOR_AND,
+                Criterion::of('latitude', $lat - $dLat, Parser::OPTION_GREATER_EQUAL),
+                Criterion::of('latitude', $lat + $dLat, Parser::OPTION_LOWER_EQUAL),
+                Criterion::of('longitude', $lng - $dLng, Parser::OPTION_GREATER_EQUAL),
+                Criterion::of('longitude', $lng + $dLng, Parser::OPTION_LOWER_EQUAL),
+            );
         }
         if ([] === $places) {
             return [];
         }
-        $qb->andWhere('('.implode(') OR (', $places).')');
+
+        $criteria = [
+            'published' => true,
+            Group::of(Parser::SEPARATOR_OR, ...$places),
+            Group::of(Parser::SEPARATOR_AND, Criterion::of('maxGuests', $query->guests->count(), Parser::OPTION_GREATER_EQUAL)),
+        ];
         if ($query->kinds) {
-            $qb->andWhere('l.kind IN (:kinds)')->setParameter('kinds', array_map(static fn ($k) => $k->value, $query->kinds));
+            $criteria['kind'] = array_map(static fn ($k) => $k->value, $query->kinds);
         }
-        $qb->andWhere('l.maxGuests >= :guests')->setParameter('guests', $query->guests->count());
 
         /** @var list<Listing> */
-        return $qb->orderBy('l.rating', 'DESC')->addOrderBy('l.id', 'ASC')->setMaxResults($max)->getQuery()->getResult();
+        return $this->findBy($criteria, ['rating' => 'DESC', 'id' => 'ASC'], $max);
     }
 
     /** @return list<Listing> */
     public function findPublished(int $limit = 12): array
     {
         /** @var list<Listing> */
-        return $this->createQueryBuilder('l')->andWhere('l.published = true')->orderBy('l.rating', 'DESC')->addOrderBy('l.id', 'ASC')->setMaxResults($limit)->getQuery()->getResult();
+        return $this->findBy(['published' => true], ['rating' => 'DESC', 'id' => 'ASC'], $limit);
     }
 
     /** @return list<Listing> */
     public function findByHost(HostProfile $host): array
     {
-        return $this->findBy(['host' => $host], ['id' => 'ASC']);
+        return $this->findBy(['host' => Key::of($host)], ['id' => 'ASC']);
     }
 }

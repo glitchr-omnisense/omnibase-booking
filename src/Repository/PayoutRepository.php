@@ -5,31 +5,35 @@ namespace Base\Booking\Repository;
 use Base\Booking\Entity\HostProfile;
 use Base\Booking\Entity\Payout;
 use Base\Booking\Enum\PayoutStatus;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\Persistence\ManagerRegistry;
+use Base\Database\Repository\Finder\Criterion;
+use Base\Database\Repository\Finder\Group;
+use Base\Database\Repository\Finder\Key;
+use Base\Database\Repository\Finder\Parser;
+use Base\Database\Repository\Finders;
+use Base\Database\Repository\ServiceEntityRepository;
 
 /** @extends ServiceEntityRepository<Payout> */
 class PayoutRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(Finders $finders)
     {
-        parent::__construct($registry, Payout::class);
+        parent::__construct($finders, Payout::class);
     }
 
     /** @return list<Payout> */
     public function findForHost(HostProfile $host): array
     {
-        return $this->findBy(['host' => $host], ['dueOn' => 'DESC']);
+        return $this->findBy(['host' => Key::of($host)], ['dueOn' => 'DESC']);
     }
 
     /** @return list<Payout> the scheduled payouts due on or before $day */
     public function findDue(\DateTimeImmutable $day): array
     {
+        // The day is bound with the mapping's type (date_immutable), as the hand-written query bound it.
         /** @var list<Payout> */
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.status = :scheduled')->setParameter('scheduled', PayoutStatus::Scheduled->value)
-            ->andWhere('p.dueOn <= :day')->setParameter('day', $day, Types::DATE_IMMUTABLE)
-            ->getQuery()->getResult();
+        return $this->findBy([
+            'status' => PayoutStatus::Scheduled->value,
+            Group::of(Parser::SEPARATOR_AND, Criterion::of('dueOn', $day, Parser::OPTION_LOWER_EQUAL)),
+        ]);
     }
 }

@@ -3,8 +3,8 @@
 namespace Base\Booking\Entity;
 
 use Base\Booking\Repository\CalendarNightRepository;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
+use Base\Mapping\Types;
 
 /**
  * One night of a listing's calendar the host set apart: blocked (not for

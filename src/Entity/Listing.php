@@ -6,7 +6,7 @@ use Base\Booking\Repository\ListingRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Order;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
 use Omnistay\Local\CancellationTerms;
 use Omnistay\Model\Amenity;
 use Omnistay\Model\PropertyKind;

@@ -8,7 +8,7 @@ composer require omnibase/booking omnisense/omnitrade omnitrade/stripe   # omnis
 
 ```php
 // config/bundles.php (the core's host first: omnisense/omnibase 5.1 with omnibridge/symfony)
-Omnibridge\Symfony\Omnibase\BaseBundle::class => ['all' => true],
+Base\BaseBundle::class => ['all' => true],
 Base\Admin\AdminBundle::class => ['all' => true],
 Omnitrade\Bridge\Symfony\OmnitradeBundle::class => ['all' => true],
 Base\Booking\BookingBundle::class => ['all' => true],
@@ -57,7 +57,7 @@ $flow->respond($booking, $host, accept: true);   // a request
 $flow->cancel($booking, $user);                  // the guest keeps the penalty's complement, the host refunds all
 ```
 
-Double booking: `DoctrineListingStore::hold()` takes the lock `omnibase-booking-listing-<id>`
+Double booking: `ListingStore::hold()` takes the lock `omnibase-booking-listing-<id>`
 (`LockFactory`; use a store shared by every PHP process: flock on one host, Redis or the database
 beyond), reads the nights taken and writes the booking in one transaction.
 

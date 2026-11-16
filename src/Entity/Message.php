@@ -4,7 +4,7 @@ namespace Base\Booking\Entity;
 
 use Base\Booking\Repository\MessageRepository;
 use Base\Entity\User;
-use Doctrine\ORM\Mapping as ORM;
+use Base\Mapping as ORM;
 
 /** A message between a booking's guest and its host: plain text, in the booking's thread. */
 #[ORM\Entity(repositoryClass: MessageRepository::class)]

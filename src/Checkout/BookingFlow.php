@@ -8,10 +8,10 @@ use Base\Booking\Exception\BookingException;
 use Base\Booking\Payment\BookingPayments;
 use Base\Booking\Payout\Payouts;
 use Base\Booking\Repository\BookingRepository;
-use Base\Booking\Stay\DoctrineListingStore;
+use Base\Booking\Stay\ListingStore;
 use Base\Booking\Stay\ListingMapper;
 use Base\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
 use Omnistay\Exception\UnavailableException;
 use Omnistay\Local\LocalProvider;
 use Omnistay\Model\Availability;
@@ -47,10 +47,10 @@ final class BookingFlow
 {
     public function __construct(
         private readonly Registry $stays,
-        private readonly DoctrineListingStore $store,
+        private readonly ListingStore $store,
         private readonly ListingMapper $mapper,
         private readonly BookingRepository $bookings,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
         private readonly BookingPayments $payments,
         private readonly Payouts $payouts,
     ) {
@@ -82,7 +82,7 @@ final class BookingFlow
         }
         $booking = $this->bookings->findOneByReference($booked->reference) ?? throw new \LogicException('The store did not keep the booking it held.');
         $booking->setOfferId($offer->id);
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $booking;
     }
@@ -111,7 +111,7 @@ final class BookingFlow
         $state = $this->payments->check($booking);
         if (PaymentState::Failed === $state) {
             $this->local()->cancel($booking->getReference(), 'payment_failed');
-            $this->entityManager->refresh($booking);
+            $this->unitOfWork->refresh($booking);
             $booking->cancel(new \DateTimeImmutable(), 'payment_failed');
         } elseif (PaymentState::Paid === $state) {
             if (!$booking->holds(new \DateTimeImmutable()) && [] !== $this->store->occupied((string) $booking->getListing()?->getId(), $booking->getCheckIn(), $booking->getCheckOut(), new \DateTimeImmutable())) {
@@ -119,14 +119,14 @@ final class BookingFlow
                 $booking->cancel(new \DateTimeImmutable(), 'nights_taken');
             } else {
                 $this->local()->confirm($booking->getReference());
-                $this->entityManager->refresh($booking);
+                $this->unitOfWork->refresh($booking);
                 $booking->setPaymentState(PaymentState::Paid);
                 if (BookingStatus::Confirmed === $booking->getStatus()) {
                     $this->payouts->schedule($booking);
                 }
             }
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $booking;
     }
@@ -147,7 +147,7 @@ final class BookingFlow
             $this->payments->refund($booking, $booking->getTotal(), 'declined');
             $booking->cancel(new \DateTimeImmutable(), 'declined')->setStatus(BookingStatus::Refused);
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $booking;
     }
@@ -171,13 +171,13 @@ final class BookingFlow
         $this->payments->refund($booking, $booking->getTotal() - $penalty, $byHost ? 'cancelled_by_host' : 'cancelled_by_guest');
         if ($booking->getProvider() === $this->mapper->provider()) {
             $this->local()->cancel($booking->getReference(), $reason);
-            $this->entityManager->refresh($booking);
+            $this->unitOfWork->refresh($booking);
         } elseif (null !== $booking->getProviderReference()) {
             $this->stays->cancel($booking->getProvider())->cancel($booking->getProviderReference(), $reason);
         }
         $booking->cancel($now, $reason ?? ($byHost ? 'cancelled_by_host' : 'cancelled_by_guest'));
         $this->payouts->cancelFor($booking);
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $booking;
     }
@@ -195,7 +195,7 @@ final class BookingFlow
         foreach ($expired as $booking) {
             $booking->cancel($now, 'payment_expired');
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return \count($expired);
     }
@@ -216,8 +216,8 @@ final class BookingFlow
             ->setBreakdown($offer->rate->toArray())
             ->setCancellation($offer->cancellation->toArray())
             ->setOfferId($offer->id);
-        $this->entityManager->persist($booking);
-        $this->entityManager->flush();
+        $this->unitOfWork->persist($booking);
+        $this->unitOfWork->flush();
 
         return $booking;
     }

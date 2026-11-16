@@ -3,20 +3,21 @@
 namespace Base\Booking\Repository;
 
 use Base\Booking\Entity\HostProfile;
+use Base\Database\Repository\Finder\Key;
+use Base\Database\Repository\Finders;
+use Base\Database\Repository\ServiceEntityRepository;
 use Base\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<HostProfile> */
 class HostProfileRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(Finders $finders)
     {
-        parent::__construct($registry, HostProfile::class);
+        parent::__construct($finders, HostProfile::class);
     }
 
     public function findOneByUser(User $user): ?HostProfile
     {
-        return $this->findOneBy(['user' => $user]);
+        return $this->findOneBy(['user' => Key::of($user)]);
     }
 }

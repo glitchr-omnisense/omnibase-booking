@@ -8,7 +8,7 @@ each other.
 - **Entities**: `Listing` (what, where, how priced, what it accepts), `ListingPhoto`, `Season`,
   `CalendarNight` (a night blocked or priced on its own), `Booking`, `Review` (both directions),
   `Message` (a booking's thread), `HostProfile`, `Payout`.
-- **The site's listings as an omnistay provider**: `Stay\DoctrineListingStore` is
+- **The site's listings as an omnistay provider**: `Stay\ListingStore` is
   omnistay/local's store; `Stay\StayRegistryFactory` builds the site's `Omnistay\Registry` from
   `booking.providers` (local, amadeus...).
 - **Calendar logic**: `Calendar\HostCalendar` (a month night by night, block, open, price nights);
@@ -41,7 +41,7 @@ Under Symfony it runs on the core's Symfony host: Composer brings `omnisense/omn
 
 ```php
 // config/bundles.php
-Omnibridge\Symfony\Omnibase\BaseBundle::class => ['all' => true],
+Base\BaseBundle::class => ['all' => true],
 Base\Admin\AdminBundle::class => ['all' => true],
 Base\Booking\BookingBundle::class => ['all' => true],
 ```

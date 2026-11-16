@@ -6,7 +6,7 @@ use Base\Booking\Entity\Booking;
 use Base\Booking\Entity\Payout;
 use Base\Booking\Enum\PayoutStatus;
 use Base\Booking\Repository\PayoutRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
 
 /**
  * What hosts are owed: a payout per confirmed booking, the host's share
@@ -19,7 +19,7 @@ final class Payouts
 {
     public function __construct(
         private readonly PayoutRepository $payouts,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
         private readonly float $hostFee = 3.0,
     ) {
     }
@@ -40,7 +40,7 @@ final class Payouts
         }
         ['amount' => $amount, 'fee' => $fee] = $this->split($booking->getHostShare());
         $payout = new Payout($listing->getHost(), $booking, $amount, $fee, $booking->getCurrency(), $booking->getCheckIn()->modify('+1 day'));
-        $this->entityManager->persist($payout);
+        $this->unitOfWork->persist($payout);
 
         return $payout;
     }
@@ -60,7 +60,7 @@ final class Payouts
         foreach ($due as $payout) {
             $payout->markPaid(new \DateTimeImmutable(), 'TR-'.$payout->getBooking()->getReference());
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return \count($due);
     }

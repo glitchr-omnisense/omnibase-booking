@@ -7,7 +7,7 @@ use Base\Booking\Entity\Message;
 use Base\Booking\Exception\BookingException;
 use Base\Booking\Repository\MessageRepository;
 use Base\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
 
 /**
  * The thread of a booking: plain messages between its guest and its host,
@@ -18,7 +18,7 @@ final class Conversations
 {
     public const MAX_LENGTH = 4000;
 
-    public function __construct(private readonly MessageRepository $messages, private readonly EntityManagerInterface $entityManager)
+    public function __construct(private readonly MessageRepository $messages, private readonly UnitOfWork $unitOfWork)
     {
     }
 
@@ -35,8 +35,8 @@ final class Conversations
             throw new BookingException('message_too_long');
         }
         $message = new Message($booking, $sender, $body);
-        $this->entityManager->persist($message);
-        $this->entityManager->flush();
+        $this->unitOfWork->persist($message);
+        $this->unitOfWork->flush();
 
         return $message;
     }
@@ -54,7 +54,7 @@ final class Conversations
                 $message->markRead($now);
             }
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $thread;
     }

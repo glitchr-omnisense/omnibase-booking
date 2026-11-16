@@ -8,7 +8,7 @@ use Base\Booking\Enum\ReviewDirection;
 use Base\Booking\Exception\BookingException;
 use Base\Booking\Repository\ReviewRepository;
 use Base\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
 use Omnistay\Model\BookingStatus;
 use Omnistay\Model\Stay;
 
@@ -23,7 +23,7 @@ final class Reviews
 {
     public function __construct(
         private readonly ReviewRepository $reviews,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
         private readonly int $window = 14,
     ) {
     }
@@ -60,12 +60,12 @@ final class Reviews
             throw new BookingException('not_yours');
         }
         $review = (new Review($booking, $direction, $author, $subject, $rating, $comment))->setCreatedAt($now);
-        $this->entityManager->persist($review);
+        $this->unitOfWork->persist($review);
         if (ReviewDirection::GuestToHost === $direction && null !== $listing = $booking->getListing()) {
             $ratings = array_map(static fn (Review $r) => $r->getRating(), [...$this->reviews->findForListing($listing), $review]);
             $listing->setRating(array_sum($ratings) / \count($ratings), \count($ratings));
         }
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
 
         return $review;
     }
