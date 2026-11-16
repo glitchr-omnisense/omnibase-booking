@@ -1,14 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## [2.0.0]
 
-omnibase/booking 1.0.0: stays booking for omnibase sites on omnisense/omnistay (listings, calendars, bookings held
+omnibase/booking 2.0.0: stays booking for omnibase sites on omnisense/omnistay (listings, calendars, bookings held
 without double booking, payments, reviews, messages, payouts) on the agnostic persistence. Its repositories extend
 `Base\Database\Repository\ServiceEntityRepository` and query in omnibase's finder language, the bulk update of the
 completed stays included (`updateBy()`), each query written once and compiled by the engine of the persistence chosen
 (omnibridge/doctrine or omnibridge/eloquent); its services write through `Base\Contract\UnitOfWork`. `Stay\ListingStore`
 is the site's listings as an omnistay provider. The code names `Base\` and its own `Base\Booking\` only. Requires
-omnisense/omnibase and omnibridge/symfony `^1.0`.
+omnisense/omnibase `^7.0` and omnibridge/symfony `^3.0`.
 
 ## [1.0.2] - 2026-11-14
 

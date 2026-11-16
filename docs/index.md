@@ -7,7 +7,7 @@ composer require omnibase/booking omnisense/omnitrade omnitrade/stripe   # omnis
 ```
 
 ```php
-// config/bundles.php (the core's host first: omnisense/omnibase 5.1 with omnibridge/symfony)
+// config/bundles.php (the core's host first: omnisense/omnibase 7.0 with omnibridge/symfony)
 Base\BaseBundle::class => ['all' => true],
 Base\Admin\AdminBundle::class => ['all' => true],
 Omnitrade\Bridge\Symfony\OmnitradeBundle::class => ['all' => true],
